@@ -1,33 +1,18 @@
-package main
+package main 
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
-func waitForDBs(numDBs int, dbChan chan struct{}) {
-	<-dbChan
-}
 
-func getDBsChannel(numDBs int) (chan struct{}, *int) {
-	count := 0
-	ch := make(chan struct{})
-
-	go func() {
-		for i := 0; i < numDBs; i++ {
-			ch <- struct{}{}
-			fmt.Printf("Database %v is online\n", i+1)
-			count++
-		}
-	}()
-
-	return ch, &count
-}
-
-func main() {
-	numDBs := 5
-	dbChan, count := getDBsChannel(numDBs)
-
-	for i := 0; i < numDBs; i++ {
-		waitForDBs(numDBs, dbChan)
+func main {
+	const port := "8080"
+	mux := http.NewServeMux()
+	server := &http.Server{
+		Addr:    ":" + port,
+		Handler: mux,
 	}
-
-	fmt.Printf("All %v databases are online\n", *count)
+	log.Printf("Server is running on port %s", port)
+	log.Fatal(server.ListenAndServe())
 }
