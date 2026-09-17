@@ -1,0 +1,33 @@
+.git
+.gitignore
+.dockerignore
+
+# OS / editor metadata
+.DS_Store
+.vscode/
+.idea/
+
+# Go build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+coverage.out
+
+# Local/dev files
+.env
+.env.*
+tmp/
+logs/
+
+# GitHub / docs
+.github/
+*.md
+
+# Dockerfile
+Dockerfile
