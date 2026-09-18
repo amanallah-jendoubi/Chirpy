@@ -2,7 +2,5 @@ services:
   go-api:
     container_name: go-api-container
     build: .
-    volumes:
-      - .:/app:ro
     ports:   
       - "8080:8080"

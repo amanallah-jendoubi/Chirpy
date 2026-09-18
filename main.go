@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"sync/atomic"
+
+	"github.com/amanallah-jendoubi/Textio/db"
 )
 
 type apiConfig struct {
@@ -11,6 +13,7 @@ type apiConfig struct {
 }
 
 func main() {
+	db.Init(".env")
 	const filepathRoot = "./public"
 	const port = "8080"
 
@@ -32,7 +35,23 @@ func main() {
 		Addr:    ":" + port,
 		Handler: handlerLogger(mux),
 	}
+	rows, err := db.DB.Query("SELECT NOW()")
+	if err != nil {
+		log.Fatalf("Query failed: %v", err)
+	}
+	defer rows.Close()
+	var now string
+	for rows.Next() {
+		if err := rows.Scan(&now); err != nil {
+			log.Fatalf("Scan failed: %v", err)
+		}
+		log.Println("Current time from DB:", now)
+	}
+	if err := rows.Err(); err != nil {
+		log.Fatalf("Rows iteration failed: %v", err)
+	}
 
 	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
 	log.Fatal(srv.ListenAndServe())
+
 }

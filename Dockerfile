@@ -1,8 +1,10 @@
 # Build stage
-FROM golang:1.22-alpine AS builder
-
+FROM golang:1.22-alpine AS base
 WORKDIR /app
-RUN go install github.com/air-verse/air@v1.52.3
 COPY go.mod go.sum* ./
 RUN go mod download
+
+
+FROM base as development
+RUN go install github.com/air-verse/air@v1.52.3
 CMD ["air"]
