@@ -10,7 +10,7 @@ import (
 	"os"
 )
 
-var DB *sql.DB
+var DB *sql.DB //pool manager
 
 func Init(envPath string) {
 	if envPath != "" {
@@ -28,7 +28,7 @@ func Init(envPath string) {
 	password := os.Getenv("POSTGRES_PASSWORD")
 
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+		host, port, user, password, dbname) //no ssl fo db connections (dev)
 
 	if DB != nil {
 		if err := DB.Close(); err != nil {

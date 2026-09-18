@@ -14,11 +14,10 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		Email string `json:"email"`
 		Name  string `json:"name"`
 	}
-
 	decoder := json.NewDecoder(r.Body)
 	params := createUserRequest{}
 	if err := decoder.Decode(&params); err != nil {
-		helpers.RespondWithError(w, 500, "Something went wrong")
+		helpers.RespondWithError(w, 400, "Invalid user creation request")
 		return
 	}
 
@@ -30,10 +29,5 @@ func (cfg *apiConfig) handlerCreateUser(w http.ResponseWriter, r *http.Request) 
 		helpers.RespondWithError(w, 500, "could not create user")
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(user); err != nil {
-		http.Error(w, "could not encode user", http.StatusInternalServerError)
-		return
-	}
+	helpers.RespondWithJSON(w, 201, helpers.DatabaseUserToUser(user))
 }
