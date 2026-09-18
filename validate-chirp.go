@@ -16,8 +16,7 @@ func handlerValidateChirp(w http.ResponseWriter, r *http.Request) {
 	}
 	dec := json.NewDecoder(r.Body)
 	var params chirpRequest
-	err := dec.Decode(&params)
-	if err != nil {
+	if err := dec.Decode(&params); err != nil {
 		helpers.RespondWithError(w, 500, "Something went wrong")
 		return
 	}
