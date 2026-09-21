@@ -7,4 +7,4 @@ RUN go mod download
 
 FROM base as development
 RUN go install github.com/air-verse/air@v1.52.3
-CMD ["air"]
+CMD ["air", "-build.cmd", "go build -o ./tmp/main ./cmd", "-build.bin", "./tmp/main"]
