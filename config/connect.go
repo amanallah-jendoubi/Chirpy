@@ -1,9 +1,9 @@
-package db
+package config
 
 import (
 	"database/sql"
 	"fmt"
-	"github.com/amanallah-jendoubi/Textio/helpers"
+	"github.com/amanallah-jendoubi/Textio/http/helpers"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"
@@ -17,10 +17,7 @@ func Init(envPath string) {
 		if err := godotenv.Load(envPath); err != nil {
 			log.Printf("Warning: could not load .env file from %s: %v", envPath, err)
 		}
-	} else if err := godotenv.Load(); err != nil {
-		log.Printf("Warning: could not load default .env file: %v", err)
 	}
-
 	host := helpers.GetEnv("POSTGRES_HOST", "db")
 	port := helpers.GetEnv("POSTGRES_PORT", "5432")
 	user := helpers.GetEnv("POSTGRES_USER", "postgres")
