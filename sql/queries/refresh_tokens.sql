@@ -11,3 +11,13 @@ INSERT INTO refresh_tokens (
     $4
 )
 RETURNING *;
+
+
+-- name: GetRefreshToken :one
+SELECT *
+FROM refresh_tokens
+WHERE token = $1
+LIMIT 1;
+-- name: RevokeRefreshTokensByFamilyID :exec
+DELETE FROM refresh_tokens
+WHERE family_id = $1;

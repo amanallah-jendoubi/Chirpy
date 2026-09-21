@@ -145,3 +145,62 @@ func LoginHandler(q *database.Queries) http.Handler {
 	}
 	return http.HandlerFunc(fn)
 }
+
+func RefreshHandler(q *database.Queries) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		type refreshRequest struct {
+			RefreshToken string `json:"refresh_token"`
+		}
+		var req refreshRequest
+		decoder := json.NewDecoder(r.Body)
+		// request validation
+		if err := decoder.Decode(&req); err != nil {
+			helpers.RespondWithError(w, 400, "invalid request body")
+			return
+		}
+		if req.RefreshToken == "" {
+			helpers.RespondWithError(w, 400, "refresh token required")
+			return
+		}
+		//refresh token db lookup
+		refreshToken, err := q.GetRefreshToken(r.Context(), helpers.HashToken(req.RefreshToken))
+		if err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				helpers.RespondWithError(w, 404, "verify you user name")
+				return
+			}
+			helpers.RespondWithError(w, 500, "internal server error")
+			return
+		}
+		if refreshToken.ExpiresAt.Before(time.Now()) || refreshToken.UsedAt.Valid {
+			err = q.RevokeRefreshTokensByFamilyID(r.Context(), refreshToken.FamilyID)
+			if err != nil {
+				helpers.RespondWithError(w, 500, "internal server error")
+			}
+			return
+		}
+		//generate refresh token in the same family tree
+		rawToken, hashedToken, err := helpers.GenerateRefreshToken()
+		if err != nil {
+			helpers.RespondWithError(w, 500, "could not create refresh token")
+			return
+		}
+		q.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{UserID: refreshToken.UserID, Token: hashedToken, ExpiresAt: time.Now().Add(7 * 24 * time.Hour), FamilyID: refreshToken.FamilyID})
+		//generate access token
+		accessToken, err := helpers.GenerateAccessToken(refreshToken.UserID)
+		if err != nil {
+			helpers.RespondWithError(w, 500, "could not create access token")
+			return
+		}
+		type response struct {
+			RefreshToken string `json:"refresh_token"`
+			AccessToken  string `json:"access_token"`
+		}
+		res := response{
+			RefreshToken: rawToken,
+			AccessToken:  accessToken,
+		}
+		helpers.RespondWithJSON(w, 200, res)
+	}
+	return http.HandlerFunc(fn)
+}

@@ -51,6 +51,12 @@ func GenerateRefreshToken() (rawToken string, hashedToken string, err error) {
 	return rawToken, hashedToken, nil
 }
 
+// hash raw refresh_token
+func HashToken(rawToken string) string {
+	sum := sha256.Sum256([]byte(rawToken))
+	return hex.EncodeToString(sum[:])
+}
+
 // access token generation
 
 type Claims struct {

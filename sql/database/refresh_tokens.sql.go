@@ -52,3 +52,34 @@ func (q *Queries) CreateRefreshToken(ctx context.Context, arg CreateRefreshToken
 	)
 	return i, err
 }
+
+const getRefreshToken = `-- name: GetRefreshToken :one
+SELECT id, user_id, token, expires_at, used_at, family_id
+FROM refresh_tokens
+WHERE token = $1
+LIMIT 1
+`
+
+func (q *Queries) GetRefreshToken(ctx context.Context, token string) (RefreshToken, error) {
+	row := q.db.QueryRowContext(ctx, getRefreshToken, token)
+	var i RefreshToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Token,
+		&i.ExpiresAt,
+		&i.UsedAt,
+		&i.FamilyID,
+	)
+	return i, err
+}
+
+const revokeRefreshTokensByFamilyID = `-- name: RevokeRefreshTokensByFamilyID :exec
+DELETE FROM refresh_tokens
+WHERE family_id = $1
+`
+
+func (q *Queries) RevokeRefreshTokensByFamilyID(ctx context.Context, familyID uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, revokeRefreshTokensByFamilyID, familyID)
+	return err
+}
