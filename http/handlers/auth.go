@@ -176,7 +176,9 @@ func RefreshHandler(q *database.Queries) http.Handler {
 			err = q.RevokeRefreshTokensByFamilyID(r.Context(), refreshToken.FamilyID)
 			if err != nil {
 				helpers.RespondWithError(w, 500, "internal server error")
+				return
 			}
+			helpers.RespondWithError(w, 401, "invalid or expired refresh token")
 			return
 		}
 		//generate refresh token in the same family tree
