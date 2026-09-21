@@ -7,3 +7,9 @@ RETURNING *;
 SELECT EXISTS(
     SELECT 1 FROM users WHERE name = $1
 ) AS exists;
+
+-- name: GetUserByName :one
+SELECT *
+FROM users
+WHERE name = $1
+LIMIT 1;

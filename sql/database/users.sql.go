@@ -27,6 +27,20 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
+const getUserByName = `-- name: GetUserByName :one
+SELECT id, name, password
+FROM users
+WHERE name = $1
+LIMIT 1
+`
+
+func (q *Queries) GetUserByName(ctx context.Context, name string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByName, name)
+	var i User
+	err := row.Scan(&i.ID, &i.Name, &i.Password)
+	return i, err
+}
+
 const userExists = `-- name: UserExists :one
 SELECT EXISTS(
     SELECT 1 FROM users WHERE name = $1

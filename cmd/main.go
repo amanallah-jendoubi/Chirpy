@@ -21,6 +21,7 @@ func main() {
 
 	//auth
 	mux.Handle("POST /api/register", handlers.RegistrationHandler(queries))
+	mux.Handle("POST /api/login", handlers.LoginHandler(queries))
 
 	log.Print("Listening...")
 	http.ListenAndServe(":8080", middlewares.Logger(mux))
