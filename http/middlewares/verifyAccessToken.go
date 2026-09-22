@@ -15,7 +15,7 @@ import (
 
 type contextKey string
 
-const userIDContextKey contextKey = "userID"
+const UserIDContextKey contextKey = "userID"
 
 func VerifyAccessToken(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
@@ -57,8 +57,9 @@ func VerifyAccessToken(next http.Handler) http.Handler {
 			helpers.RespondWithError(w, 401, "expired token")
 			return
 		}
-		ctx := context.WithValue(r.Context(), userIDContextKey, claims.UserID)
-		next.ServeHTTP(w, r.WithContext(ctx))
+		ctx := context.WithValue(r.Context(), UserIDContextKey, claims.UserID)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	}
 	return http.HandlerFunc(fn)
 }

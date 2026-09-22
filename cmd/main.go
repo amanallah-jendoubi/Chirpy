@@ -23,6 +23,7 @@ func main() {
 	mux.Handle("POST /api/register", handlers.RegistrationHandler(queries))
 	mux.Handle("POST /api/login", handlers.LoginHandler(queries))
 	mux.Handle("POST /api/refresh", handlers.RefreshHandler(queries))
+	mux.Handle("GET /api/users/me", middlewares.VerifyAccessToken(handlers.UserInfoHandler(queries)))
 
 	log.Print("Listening...")
 	http.ListenAndServe(":8080", middlewares.Logger(mux))
