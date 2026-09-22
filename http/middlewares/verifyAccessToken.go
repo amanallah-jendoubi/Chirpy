@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/amanallah-jendoubi/Textio/http/helpers"
 	jwt "github.com/golang-jwt/jwt/v5"
@@ -48,7 +49,12 @@ func VerifyAccessToken(next http.Handler) http.Handler {
 			return jwtSecret, nil
 		})
 		if err != nil || !token.Valid {
-			helpers.RespondWithError(w, 401, "invalid or expired token")
+			helpers.RespondWithError(w, 401, "invalid token")
+			return
+		}
+		exp, err := token.Claims.GetExpirationTime()
+		if err != nil || exp == nil || exp.Before(time.Now()) {
+			helpers.RespondWithError(w, 401, "expired token")
 			return
 		}
 		ctx := context.WithValue(r.Context(), userIDContextKey, claims.UserID)
