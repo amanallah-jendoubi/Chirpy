@@ -7,7 +7,7 @@
 
 # Test binary
 *.test
-/temp/
+/tmp/
 
 # Output of go build
 /main
