@@ -1,16 +1,15 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE messages (
+CREATE TABLE chat_groups (
     id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name              TEXT NOT NULL ,
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
-    sender_id           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    receiver_id         UUID NOT NULL 
+    created_by        UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_messages_user_id ON messages(sender_id);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS chat_groups;
 -- +goose StatementEnd
