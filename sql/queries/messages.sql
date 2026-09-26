@@ -40,3 +40,17 @@ WHERE r.receiver_id = c.id
 
 ORDER BY latest DESC;
 
+-- name: GetGroupMessages :many
+SELECT *
+FROM messages 
+WHERE receiver_id = $1
+ORDER BY created_at DESC;
+
+
+-- name: GetDuelMessages :many
+
+SELECT * 
+FROM messages 
+WHERE (receiver_id = $1 AND sender_id = $2) OR (receiver_id = $2 AND sender_id = $1)
+ORDER BY created_at DESC;
+

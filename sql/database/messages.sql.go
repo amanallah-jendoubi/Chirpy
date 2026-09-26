@@ -102,6 +102,84 @@ func (q *Queries) GetConversationsByUserID(ctx context.Context, senderID uuid.UU
 	return items, nil
 }
 
+const getDuelMessages = `-- name: GetDuelMessages :many
+
+SELECT id, created_at, sender_id, receiver_id, body 
+FROM messages 
+WHERE (receiver_id = $1 AND sender_id = $2) OR (receiver_id = $2 AND sender_id = $1)
+ORDER BY created_at DESC
+`
+
+type GetDuelMessagesParams struct {
+	ReceiverID uuid.UUID
+	SenderID   uuid.UUID
+}
+
+func (q *Queries) GetDuelMessages(ctx context.Context, arg GetDuelMessagesParams) ([]Message, error) {
+	rows, err := q.db.QueryContext(ctx, getDuelMessages, arg.ReceiverID, arg.SenderID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Message
+	for rows.Next() {
+		var i Message
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.SenderID,
+			&i.ReceiverID,
+			&i.Body,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getGroupMessages = `-- name: GetGroupMessages :many
+SELECT id, created_at, sender_id, receiver_id, body
+FROM messages 
+WHERE receiver_id = $1
+ORDER BY created_at DESC
+`
+
+func (q *Queries) GetGroupMessages(ctx context.Context, receiverID uuid.UUID) ([]Message, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupMessages, receiverID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Message
+	for rows.Next() {
+		var i Message
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.SenderID,
+			&i.ReceiverID,
+			&i.Body,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isGroupMember = `-- name: IsGroupMember :one
 SELECT EXISTS (
     SELECT 1
