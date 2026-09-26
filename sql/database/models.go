@@ -11,30 +11,25 @@ import (
 	"github.com/google/uuid"
 )
 
-type Conversation struct {
-	ID   uuid.UUID
-	Name string
+type ChatGroup struct {
+	ID        uuid.UUID
+	Name      string
+	CreatedAt time.Time
+	CreatedBy uuid.UUID
 }
 
-type Invitation struct {
-	ID             uuid.UUID
-	Status         string
-	ConversationID uuid.UUID
-	SenderID       uuid.UUID
-	ReceiverID     uuid.UUID
-}
-
-type Member struct {
-	UserID         uuid.UUID
-	ConversationID uuid.UUID
+type ChatGroupMember struct {
+	UserID      uuid.UUID
+	ChatGroupID uuid.UUID
+	JoinedAt    time.Time
 }
 
 type Message struct {
-	ID             uuid.UUID
-	CreatedAt      time.Time
-	UserID         uuid.UUID
-	ConversationID uuid.UUID
-	Body           string
+	ID         uuid.UUID
+	CreatedAt  time.Time
+	SenderID   uuid.UUID
+	ReceiverID uuid.UUID
+	Body       string
 }
 
 type RefreshToken struct {

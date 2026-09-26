@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/amanallah-jendoubi/Textio/http/helpers"
@@ -12,7 +11,6 @@ import (
 
 func UserInfoHandler(q *database.Queries) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Context().Value(middlewares.UserIDContextKey))
 		userID, ok := r.Context().Value(middlewares.UserIDContextKey).(uuid.UUID)
 		if !ok {
 			helpers.RespondWithError(w, 500, "missing user id in context")
