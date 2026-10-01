@@ -29,7 +29,7 @@ func main() {
 	mux.Handle("POST /api/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.SendMessageHandler(queries)))
 	// get all conversations sorted by latest
 	mux.Handle("GET /api/conversations", middlewares.VerifyAccessToken(handlers.ConversationsHandler(queries)))
-	// get conversation messages (to improve)
+	// get conversation messages sorted by latest (to improve)
 	mux.Handle("GET /api/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.GetMessagesHandler(queries)))
 	/*todo
 	create group
