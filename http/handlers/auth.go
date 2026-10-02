@@ -104,7 +104,7 @@ func LoginHandler(q *database.Queries) http.Handler {
 		user, err := q.GetUserByName(r.Context(), req.Name)
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				helpers.RespondWithError(w, 404, "verify you user name")
+				helpers.RespondWithError(w, 404, "verify your user name")
 				return
 			}
 			helpers.RespondWithError(w, 500, "internal server error")
@@ -166,7 +166,7 @@ func RefreshHandler(q *database.Queries) http.Handler {
 		refreshToken, err := q.GetRefreshToken(r.Context(), helpers.HashToken(req.RefreshToken))
 		if err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
-				helpers.RespondWithError(w, 404, "verify you user name")
+				helpers.RespondWithError(w, 404, "verify your user name")
 				return
 			}
 			helpers.RespondWithError(w, 500, "internal server error")
