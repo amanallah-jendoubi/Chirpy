@@ -61,13 +61,13 @@ WITH recent AS (
     WHERE sender_id = $1
     GROUP BY receiver_id
 )
-SELECT u.name, r.latest
+SELECT u.id, u.name, r.latest
 FROM recent r , users u 
 WHERE r.receiver_id = u.id 
 
 UNION ALL
 
-SELECT c.name, r.latest
+SELECT c.id, c.name, r.latest
 FROM recent r, chat_groups c
 WHERE r.receiver_id = c.id 
 
@@ -75,6 +75,7 @@ ORDER BY latest DESC
 `
 
 type GetConversationsByUserIDRow struct {
+	ID     uuid.UUID
 	Name   string
 	Latest interface{}
 }
@@ -88,7 +89,7 @@ func (q *Queries) GetConversationsByUserID(ctx context.Context, senderID uuid.UU
 	var items []GetConversationsByUserIDRow
 	for rows.Next() {
 		var i GetConversationsByUserIDRow
-		if err := rows.Scan(&i.Name, &i.Latest); err != nil {
+		if err := rows.Scan(&i.ID, &i.Name, &i.Latest); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

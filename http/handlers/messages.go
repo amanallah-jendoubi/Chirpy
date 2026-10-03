@@ -96,12 +96,23 @@ func ConversationsHandler(q *database.Queries) http.Handler {
 			return
 		}
 		type response struct {
-			Name   string      `json:"name"`
-			Latest interface{} `json:"latest"`
+			ID      uuid.UUID   `json:"id"`
+			Name    string      `json:"name"`
+			Latest  interface{} `json:"latest"`
+			IsGroup bool        `json:"is_group"`
 		}
 		var res []response
 		for _, c := range conversations {
-			res = append(res, response{Name: c.Name, Latest: c.Latest})
+			isChatGroupID, err := q.ChatGroupExists(r.Context(), c.ID)
+			if err != nil {
+				helpers.RespondWithError(w, 500, "server internal error")
+				return
+			}
+			if isChatGroupID {
+				res = append(res, response{ID: c.ID, Name: c.Name, Latest: c.Latest, IsGroup: true})
+			} else {
+				res = append(res, response{ID: c.ID, Name: c.Name, Latest: c.Latest, IsGroup: false})
+			}
 		}
 		helpers.RespondWithJSON(w, 200, res)
 	}

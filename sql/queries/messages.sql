@@ -28,13 +28,13 @@ WITH recent AS (
     WHERE sender_id = $1
     GROUP BY receiver_id
 )
-SELECT u.name, r.latest
+SELECT u.id, u.name, r.latest
 FROM recent r , users u 
 WHERE r.receiver_id = u.id 
 
 UNION ALL
 
-SELECT c.name, r.latest
+SELECT c.id, c.name, r.latest
 FROM recent r, chat_groups c
 WHERE r.receiver_id = c.id 
 
