@@ -3,38 +3,85 @@ package home
 import (
 	tea "charm.land/bubbletea/v2"
 
+	"bytes"
+	"encoding/json"
+	"github.com/amanallah-jendoubi/Textio/tui/client"
+	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
 	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	"github.com/google/uuid"
 
+	"fmt"
 	"strings"
 	"time"
 )
 
-func (h *home) updateChat(k tea.KeyPressMsg) (nav.Screen, tea.Cmd) {
-	switch k.String() {
-	case "esc":
-		h.mode, h.input = modeList, nil
-	case "enter":
-		text := strings.TrimSpace(string(h.input))
-		if text != "" {
+type messageSentMsg message
+
+func sendMessage(receiverID, userID uuid.UUID, body string, createdAt time.Time, accessToken string) tea.Cmd {
+	return func() tea.Msg {
+		msg := messageApi{
+			CreatedAt:  createdAt,
+			SenderID:   userID,
+			ReceiverID: receiverID,
+			Body:       body,
+		}
+		payload, err := json.Marshal(msg)
+		if err != nil {
+			return apperr.HandleLocalError(apperr.AsChat, err)
+		}
+		res, err := client.Post(
+			fmt.Sprintf("/conversations/%s/messages", receiverID),
+			accessToken,
+			bytes.NewReader(payload),
+		)
+		if err != nil {
+			return apperr.HandleLocalError(apperr.AsChat, err)
+		}
+
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			return apperr.HandleAPIError(apperr.AsChat, res, "")
+		}
+		return nil
+	}
+}
+
+func (h *home) updateChat(msg tea.Msg) (nav.Screen, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyPressMsg:
+		switch msg.String() {
+		case "esc":
+			h.mode, h.input = modeList, nil
+
+		case "enter":
+			text := strings.TrimSpace(string(h.input))
+			if text == "" {
+				return h, nil
+			}
+			now := time.Now()
 			c := &h.convs[h.cursor]
 			c.Messages = append(c.Messages, message{
 				from: "me",
-				at:   formatMessageTime(time.Now()),
+				at:   formatMessageTime(now),
 				body: text,
 			})
-			//api call to send message
 			h.input = nil
+
+			return h, sendMessage(c.ID, h.userID, text, now, h.accessToken)
+
+		case "backspace":
+			if len(h.input) > 0 {
+				h.input = h.input[:len(h.input)-1]
+			}
+		default:
+			if msg.Text != "" {
+				h.input = append(h.input, []rune(msg.Text)...)
+			}
 		}
-	case "backspace":
-		if len(h.input) > 0 {
-			h.input = h.input[:len(h.input)-1]
-		}
-	default:
-		if k.Text != "" {
-			h.input = append(h.input, []rune(k.Text)...)
-		}
+	case apperr.ChatErrMsg:
+		h.chatErr = msg.UserErr
 	}
+
 	return h, nil
 }
 

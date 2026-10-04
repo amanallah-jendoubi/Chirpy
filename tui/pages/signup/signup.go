@@ -105,7 +105,7 @@ func signupCmd(username, password string) tea.Cmd {
 		if err != nil {
 			return apperr.HandleLocalError(apperr.AsSignup, err)
 		}
-		res, err := client.Post("/register", bytes.NewReader(body))
+		res, err := client.Post("/register", "", bytes.NewReader(body))
 		if err != nil {
 			return apperr.HandleLocalError(apperr.AsSignup, err)
 		}

@@ -17,10 +17,10 @@ func Post(url string, accessToken string, body io.Reader) (*http.Response, error
 	if err != nil {
 		return nil, err
 	}
-
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+accessToken)
-
+	if accessToken != "" {
+		req.Header.Set("Authorization", "Bearer "+accessToken)
+	}
 	return NewClient().Do(req)
 }
 

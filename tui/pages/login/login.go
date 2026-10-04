@@ -98,7 +98,7 @@ func loginCmd(username, password string) tea.Cmd {
 		if err != nil {
 			return apperr.HandleLocalError(apperr.AsLogin, err)
 		}
-		res, err := client.Post("/login", bytes.NewReader(body))
+		res, err := client.Post("/login", "", bytes.NewReader(body))
 		if err != nil {
 			return apperr.HandleLocalError(apperr.AsLogin, err)
 		}
