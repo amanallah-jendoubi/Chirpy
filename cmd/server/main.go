@@ -25,12 +25,14 @@ func main() {
 	mux.Handle("POST /api/refresh", handlers.RefreshHandler(queries))
 	//get current user info
 	mux.Handle("GET /api/users/me", middlewares.VerifyAccessToken(handlers.UserInfoHandler(queries)))
+	// get user ID by user name
+	mux.Handle("GET /api/users/{userName}", middlewares.VerifyAccessToken(handlers.GetUserIdByUserNameHandler(queries)))
 	//send a message to user or chat group
-	mux.Handle("POST /api/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.SendMessageHandler(queries)))
+	mux.Handle("POST /api/conversations/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.SendMessageHandler(queries)))
 	// get all conversations sorted by latest
 	mux.Handle("GET /api/conversations", middlewares.VerifyAccessToken(handlers.ConversationsHandler(queries)))
 	// get conversation messages sorted by latest (to improve)
-	mux.Handle("GET /api/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.GetMessagesHandler(queries)))
+	mux.Handle("GET /api/conversations/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.GetMessagesHandler(queries)))
 	/*todo
 	create group
 	add member to a group

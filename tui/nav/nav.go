@@ -2,12 +2,14 @@ package nav
 
 import (
 	tea "charm.land/bubbletea/v2"
+	"log"
 )
 
 // Every screen implements this.
 type Screen interface {
 	Update(msg tea.Msg) (Screen, tea.Cmd)
 	Box(frame int) string // the foreground content drawn over the rain
+	Init() tea.Cmd
 }
 
 type Route string
@@ -24,6 +26,7 @@ type NavigateMsg struct{ To Route }
 
 func Navigate(to Route) tea.Cmd {
 	return func() tea.Msg {
+		log.Println("navigate to", to)
 		return NavigateMsg{To: to}
 	}
 }

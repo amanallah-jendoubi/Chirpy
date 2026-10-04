@@ -15,6 +15,10 @@ WHERE name = $1
 LIMIT 1;
 
 -- name: GetUserByID :one
-SELECT name
+SELECT id, name
 FROM users
 WHERE id = $1;
+
+-- name: GetUserIDByUserName :one
+SELECT id FROM users WHERE name = $1;
+

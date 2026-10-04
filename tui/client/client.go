@@ -6,10 +6,6 @@ import (
 	"time"
 )
 
-type ErrMsg struct{ Err error }
-
-func (e ErrMsg) Error() string { return e.Err.Error() }
-
 const ApiURL = "http://localhost:8080/api"
 
 func NewClient() *http.Client {
@@ -18,4 +14,13 @@ func NewClient() *http.Client {
 
 func Post(url string, body io.Reader) (*http.Response, error) {
 	return NewClient().Post(ApiURL+url, "application/json", body)
+}
+
+func Get(url string, accessToken string, body io.Reader) (*http.Response, error) {
+	req, err := http.NewRequest("GET", ApiURL+url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Authorization", "Bearer "+accessToken)
+	return NewClient().Do(req)
 }

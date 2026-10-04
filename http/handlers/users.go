@@ -22,10 +22,31 @@ func UserInfoHandler(q *database.Queries) http.Handler {
 			return
 		}
 		type response struct {
-			UserName string `json:"user_name"`
+			UserID   uuid.UUID `json:"user_id"`
+			UserName string    `json:"user_name"`
 		}
 		res := response{
 			UserName: userName,
+			UserID:   userID,
+		}
+		helpers.RespondWithJSON(w, 200, res)
+	}
+	return http.HandlerFunc(fn)
+}
+
+func GetUserIdByUserNameHandler(q *database.Queries) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		userName := r.PathValue("userName")
+		userID, err := q.GetUserIDByUserName(r.Context(), userName)
+		if err != nil {
+			helpers.RespondWithError(w, 500, "internal server error")
+			return
+		}
+		type response struct {
+			UserID uuid.UUID `json:"user_id"`
+		}
+		res := response{
+			UserID: userID,
 		}
 		helpers.RespondWithJSON(w, 200, res)
 	}

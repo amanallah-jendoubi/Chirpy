@@ -3,13 +3,12 @@ package login
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"io"
-	"net/http"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/amanallah-jendoubi/Textio/tui/auth"
 	"github.com/amanallah-jendoubi/Textio/tui/client"
+	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
 	"github.com/amanallah-jendoubi/Textio/tui/styles"
 )
@@ -38,11 +37,14 @@ func NewLogin() *login {
 	}
 }
 
+func (l *login) Init() tea.Cmd { return nil }
+
 func (l *login) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
-	case client.ErrMsg:
-		l.loading, l.err = false, msg.Error()
-
+	case apperr.LoginErrMsg:
+		l.loading, l.err = false, msg.UserErr
+	case apperr.AuthErrMsg:
+		l.err = msg.UserErr
 	case tea.KeyPressMsg:
 		if l.loading {
 			return l, nil // ignore input while waiting for the server
@@ -94,26 +96,19 @@ func loginCmd(username, password string) tea.Cmd {
 	return func() tea.Msg {
 		body, err := json.Marshal(map[string]string{"name": username, "password": password})
 		if err != nil {
-			return client.ErrMsg{Err: err}
+			return apperr.HandleLocalError(apperr.AsLogin, err)
 		}
 		res, err := client.Post("/login", bytes.NewReader(body))
 		if err != nil {
-			return client.ErrMsg{Err: errors.New("cannot reach server")}
+			return apperr.HandleLocalError(apperr.AsLogin, err)
 		}
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
-			var payload struct {
-				Error string `json:"error"`
-			}
-			decoder := json.NewDecoder(io.LimitReader(res.Body, 1024))
-			if err := decoder.Decode(&payload); err != nil {
-				return client.ErrMsg{Err: err}
-			}
-			text := strings.TrimSpace(payload.Error)
-			if text == "" {
-				text = http.StatusText(res.StatusCode)
-			}
-			return client.ErrMsg{Err: errors.New(text)}
+			return apperr.HandleAPIError(apperr.AsLogin, res, "")
+		}
+		err = auth.StoreTokens(res)
+		if err != nil {
+			return apperr.HandleLocalError(apperr.AsAuth, err)
 		}
 		return nav.Navigate(nav.Home)()
 	}

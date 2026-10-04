@@ -4,6 +4,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
+	"github.com/amanallah-jendoubi/Textio/tui/pages/home"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/login"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/menu"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/signup"
@@ -20,6 +21,8 @@ func build(r nav.Route) nav.Screen {
 		return signup.NewSignup()
 	case nav.Menu:
 		return menu.NewMenu()
+	case nav.Home:
+		return home.NewHome()
 	default:
 		return nil
 	}
@@ -59,7 +62,7 @@ func (a app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case nav.NavigateMsg:
 		a.current = build(msg.To)
-		return a, nil
+		return a, a.current.Init()
 
 	case tea.KeyPressMsg:
 		if msg.String() == "ctrl+c" { // global quit only

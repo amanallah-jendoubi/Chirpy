@@ -3,13 +3,12 @@ package signup
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
-	"io"
-	"net/http"
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/amanallah-jendoubi/Textio/tui/auth"
 	"github.com/amanallah-jendoubi/Textio/tui/client"
+	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
 	"github.com/amanallah-jendoubi/Textio/tui/styles"
 )
@@ -37,11 +36,14 @@ func NewSignup() *signup {
 	}
 }
 
+func (s *signup) Init() tea.Cmd { return nil }
+
 func (s *signup) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 	switch msg := msg.(type) {
-	case client.ErrMsg:
-		s.loading, s.err = false, msg.Error()
-
+	case apperr.SignupErrMsg:
+		s.loading, s.err = false, msg.UserErr
+	case apperr.AuthErrMsg:
+		s.err = msg.UserErr
 	case tea.KeyPressMsg:
 		if s.loading {
 			return s, nil // ignore input while waiting for the server
@@ -101,25 +103,19 @@ func signupCmd(username, password string) tea.Cmd {
 	return func() tea.Msg {
 		body, err := json.Marshal(map[string]string{"name": username, "password": password})
 		if err != nil {
-			return client.ErrMsg{Err: err}
+			return apperr.HandleLocalError(apperr.AsSignup, err)
 		}
 		res, err := client.Post("/register", bytes.NewReader(body))
 		if err != nil {
-			return client.ErrMsg{Err: errors.New("cannot reach server")}
+			return apperr.HandleLocalError(apperr.AsSignup, err)
 		}
-		defer res.Body.Close()
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
-			var payload struct {
-				Error string `json:"error"`
-			}
-			// a body that isn't JSON just falls back to the status text
-			_ = json.NewDecoder(io.LimitReader(res.Body, 1024)).Decode(&payload)
-			text := strings.TrimSpace(payload.Error)
-			if text == "" {
-				text = http.StatusText(res.StatusCode)
-			}
-			return client.ErrMsg{Err: errors.New(text)}
+			return apperr.HandleAPIError(apperr.AsLogin, res, "")
+		}
+		err = auth.StoreTokens(res)
+		if err != nil {
+			return apperr.HandleLocalError(apperr.AsAuth, err)
 		}
 		return nav.Navigate(nav.Home)()
 	}

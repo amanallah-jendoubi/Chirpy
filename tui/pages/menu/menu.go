@@ -26,6 +26,8 @@ func NewMenu() *menu {
 	}
 }
 
+func (m *menu) Init() tea.Cmd { return nil }
+
 func (m *menu) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 	if k, ok := msg.(tea.KeyPressMsg); ok {
 		switch k.String() {
