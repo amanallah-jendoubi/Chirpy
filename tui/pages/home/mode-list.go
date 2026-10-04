@@ -68,12 +68,14 @@ func (h *home) updateList(msg tea.Msg) (nav.Screen, tea.Cmd) {
 				break
 			}
 			h.cursor = (h.cursor + len(h.convs) - 1) % len(h.convs)
+			h.messageScroll = 0
 			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken)
 		case "down", "j", "tab":
 			if len(h.convs) == 0 {
 				break
 			}
 			h.cursor = (h.cursor + 1) % len(h.convs)
+			h.messageScroll = 0
 			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken)
 		case "enter":
 			h.mode = modeChat

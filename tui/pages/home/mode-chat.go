@@ -5,6 +5,7 @@ import (
 
 	"bytes"
 	"encoding/json"
+
 	"github.com/amanallah-jendoubi/Textio/tui/client"
 	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
@@ -52,7 +53,12 @@ func (h *home) updateChat(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			h.mode, h.input = modeList, nil
-
+		case "up":
+			h.messageScroll++
+		case "down":
+			if h.messageScroll > 0 {
+				h.messageScroll--
+			}
 		case "enter":
 			text := strings.TrimSpace(string(h.input))
 			if text == "" {
@@ -65,6 +71,7 @@ func (h *home) updateChat(msg tea.Msg) (nav.Screen, tea.Cmd) {
 				at:   formatMessageTime(now),
 				body: text,
 			})
+			h.messageScroll = 0
 			h.input = nil
 
 			return h, sendMessage(c.ID, h.userID, text, now, h.accessToken)
@@ -78,6 +85,9 @@ func (h *home) updateChat(msg tea.Msg) (nav.Screen, tea.Cmd) {
 				h.input = append(h.input, []rune(msg.Text)...)
 			}
 		}
+	case tea.PasteMsg:
+		content := strings.NewReplacer("\r\n", " ", "\n", " ", "\r", " ").Replace(msg.Content)
+		h.input = append(h.input, []rune(content)...)
 	case apperr.ChatErrMsg:
 		h.chatErr = msg.UserErr
 	}
@@ -107,10 +117,20 @@ func (h *home) chatLines(frame int) []string {
 	for _, m := range c.Messages {
 		out = append(out, renderMsg(m, rightW)...)
 	}
-	if avail := bodyH - 3; len(out) > avail {
-		out = out[len(out)-avail:] // show the newest messages
+	avail := bodyH - 2
+	maxScroll := len(out) - avail
+	if maxScroll < 0 {
+		maxScroll = 0
 	}
-	copy(lines[1:], out)
+	if h.messageScroll > maxScroll {
+		h.messageScroll = maxScroll
+	}
+	end := len(out) - h.messageScroll
+	start := end - avail
+	if start < 0 {
+		start = 0
+	}
+	copy(lines[1:1+avail], out[start:end])
 
 	lines[bodyH-1] = h.inputLine(frame)
 	return lines

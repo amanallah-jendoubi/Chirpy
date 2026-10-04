@@ -39,16 +39,17 @@ const (
 )
 
 type home struct {
-	convs       []receiver
-	cursor      int
-	mode        viewMode
-	input       []rune // message draft
-	accessToken string
-	listErr     string
-	chatErr     string
-	groupErr    string
-	dmErr       string
-	userID      uuid.UUID
+	convs         []receiver
+	cursor        int
+	messageScroll int
+	mode          viewMode
+	input         []rune // message draft
+	accessToken   string
+	listErr       string
+	chatErr       string
+	groupErr      string
+	dmErr         string
+	userID        uuid.UUID
 
 	// new-group form
 	gName  []rune
@@ -128,6 +129,10 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		//	return h.updateDM(m)
 		default:
 			return h.updateList(m)
+		}
+	case tea.PasteMsg:
+		if h.mode == modeChat {
+			return h.updateChat(m)
 		}
 	}
 	return h, nil

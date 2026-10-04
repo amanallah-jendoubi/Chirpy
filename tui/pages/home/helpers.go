@@ -94,7 +94,7 @@ func renderMsg(m message, w int) []string {
 func (h *home) help() string {
 	switch h.mode {
 	case modeChat:
-		return "enter send • esc back"
+		return "↑/↓ scroll • enter send • esc back"
 	case modeGroup:
 		return "tab/↑↓ move • enter/space toggle • esc cancel"
 	case modeDM:
