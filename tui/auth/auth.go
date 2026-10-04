@@ -2,15 +2,14 @@ package auth
 
 import (
 	"encoding/json"
+	"github.com/zalando/go-keyring"
 	"io"
 	"net/http"
-
-	"github.com/zalando/go-keyring"
 )
 
 const (
-	service = "textio"
-	user    = "default"
+	service = "matrix_chat"
+	user    = "current"
 )
 
 type Tokens struct {
