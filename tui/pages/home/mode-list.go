@@ -38,14 +38,39 @@ func getConvMsgs(receiverID uuid.UUID, receiverName string, userID uuid.UUID, ac
 
 		var messages []messageApi
 		var msgs []message
+		senderNames := make(map[uuid.UUID]string)
 		if err := json.NewDecoder(res.Body).Decode(&messages); err != nil {
 			return apperr.HandleLocalError(apperr.AsChat, err)
 		}
 		for i := len(messages) - 1; i >= 0; i-- {
 			msg := messages[i]
-			from := receiverName
+			var from string
 			if msg.SenderID == userID {
 				from = "me"
+			} else {
+				from = receiverName
+				if from == "" || msg.SenderID != receiverID {
+					from, ok := senderNames[msg.SenderID]
+					if !ok {
+						userRes, err := client.Get(fmt.Sprintf("/users/id/%s", msg.SenderID), accessToken, nil)
+						if err != nil {
+							return apperr.HandleLocalError(apperr.AsChat, err)
+						}
+						if userRes.StatusCode < 200 || userRes.StatusCode > 299 {
+							return apperr.HandleAPIError(apperr.AsChat, userRes, "")
+						}
+						var user struct {
+							UserName string `json:"user_name"`
+						}
+						if err := json.NewDecoder(userRes.Body).Decode(&user); err != nil {
+							_ = userRes.Body.Close()
+							return apperr.HandleLocalError(apperr.AsChat, err)
+						}
+						_ = userRes.Body.Close()
+						from = user.UserName
+						senderNames[msg.SenderID] = from
+					}
+				}
 			}
 			msgs = append(msgs, message{
 				from: from,

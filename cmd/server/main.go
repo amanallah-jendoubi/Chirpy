@@ -28,6 +28,7 @@ func main() {
 	mux.Handle("POST /api/refresh", handlers.RefreshHandler(queries))
 	//get current user info
 	mux.Handle("GET /api/users/me", middlewares.VerifyAccessToken(handlers.UserInfoHandler(queries)))
+	mux.Handle("GET /api/users/id/{userID}", middlewares.VerifyAccessToken(handlers.GetUserByIDHandler(queries)))
 	// get user ID by user name
 	mux.Handle("GET /api/users/{userName}", middlewares.VerifyAccessToken(handlers.GetUserIdByUserNameHandler(queries)))
 	// websocket upgrade

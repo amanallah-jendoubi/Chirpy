@@ -169,44 +169,23 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		}
 		return h, tea.Batch(cmds...)
 	case realtimeMessageMsg:
-		incoming := client.RealtimeMessage(m)
-		conversationID := incoming.ReceiverID
-		conversationIndex := -1
-		for i := range h.convs {
-			if h.convs[i].ID == conversationID {
-				conversationIndex = i
-				break
-			}
+		return h, tea.Batch(readWebSocket(h.socket), refreshConversations(h.accessToken))
+	case messageSentMsg:
+		return h, refreshConversations(h.accessToken)
+	case convsRefreshed:
+		selectedID := uuid.Nil
+		if h.cursor >= 0 && h.cursor < len(h.convs) {
+			selectedID = h.convs[h.cursor].ID
 		}
-		if conversationIndex < 0 {
-			if incoming.ReceiverID == h.userID {
-				conversationID = incoming.SenderID
-				for i := range h.convs {
-					if h.convs[i].ID == conversationID {
-						conversationIndex = i
-						break
-					}
+		h.convs = m
+		if selectedID != uuid.Nil {
+			for i := range h.convs {
+				if h.convs[i].ID == selectedID {
+					h.cursor = i
+					break
 				}
 			}
-		}
-		if conversationIndex < 0 {
-			return h, tea.Batch(readWebSocket(h.socket), refreshConversations(h.accessToken))
-		}
-		if conversationIndex >= 0 {
-			from := h.convs[conversationIndex].Name
-			if incoming.SenderID == h.userID {
-				from = "me"
-			}
-			h.convs[conversationIndex].Messages = append(h.convs[conversationIndex].Messages, message{
-				from: from,
-				at:   formatMessageTime(incoming.CreatedAt),
-				body: incoming.Body,
-			})
-		}
-		return h, readWebSocket(h.socket)
-	case convsRefreshed:
-		h.convs = m
-		if h.cursor >= len(h.convs) {
+		} else if h.cursor >= len(h.convs) {
 			h.cursor = 0
 		}
 		if len(h.convs) > 0 {

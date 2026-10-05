@@ -35,6 +35,31 @@ func UserInfoHandler(q *database.Queries) http.Handler {
 	return http.HandlerFunc(fn)
 }
 
+func GetUserByIDHandler(q *database.Queries) http.Handler {
+	fn := func(w http.ResponseWriter, r *http.Request) {
+		userID, err := uuid.Parse(r.PathValue("userID"))
+		if err != nil {
+			helpers.RespondWithError(w, http.StatusBadRequest, "invalid userID")
+			return
+		}
+		user, err := q.GetUserByID(r.Context(), userID)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				helpers.RespondWithError(w, http.StatusNotFound, "user not found")
+				return
+			}
+			helpers.RespondWithError(w, http.StatusInternalServerError, "internal server error")
+			return
+		}
+		type response struct {
+			UserID   uuid.UUID `json:"user_id"`
+			UserName string    `json:"user_name"`
+		}
+		helpers.RespondWithJSON(w, http.StatusOK, response{UserID: user.ID, UserName: user.Name})
+	}
+	return http.HandlerFunc(fn)
+}
+
 func GetUserIdByUserNameHandler(q *database.Queries) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		userName := r.PathValue("userName")

@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-type messageSentMsg message
+type messageSentMsg struct{}
 
 func sendMessage(receiverID, userID uuid.UUID, body string, createdAt time.Time, accessToken string) tea.Cmd {
 	return func() tea.Msg {
@@ -39,11 +39,12 @@ func sendMessage(receiverID, userID uuid.UUID, body string, createdAt time.Time,
 		if err != nil {
 			return apperr.HandleLocalError(apperr.AsChat, err)
 		}
+		defer res.Body.Close()
 
 		if res.StatusCode < 200 || res.StatusCode > 299 {
 			return apperr.HandleAPIError(apperr.AsChat, res, "")
 		}
-		return nil
+		return messageSentMsg{}
 	}
 }
 
