@@ -165,7 +165,7 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 			cmds[0] = readWebSocket(h.socket)
 		}
 		if len(h.convs) > 0 {
-			cmds = append(cmds, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken))
+			cmds = append(cmds, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken, h.convs[h.cursor].IsGroup))
 		}
 		return h, tea.Batch(cmds...)
 	case realtimeMessageMsg:
@@ -189,7 +189,7 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 			h.cursor = 0
 		}
 		if len(h.convs) > 0 {
-			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken)
+			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken, h.convs[h.cursor].IsGroup)
 		}
 	case dmUserLoaded:
 		return h.updateDM(m)

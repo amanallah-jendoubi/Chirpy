@@ -28,7 +28,7 @@ func (h *home) startConversation() tea.Cmd {
 	for i, conversation := range h.convs {
 		if !conversation.IsGroup && strings.EqualFold(conversation.Name, name) {
 			h.cursor, h.mode, h.input = i, modeChat, nil
-			return getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken)
+			return getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken, false)
 		}
 	}
 
@@ -58,13 +58,13 @@ func (h *home) updateDM(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		for i, conversation := range h.convs {
 			if !conversation.IsGroup && conversation.ID == m.id {
 				h.cursor, h.mode, h.input = i, modeChat, nil
-				return h, getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken)
+				return h, getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken, false)
 			}
 		}
 		h.convs = append(h.convs, receiver{ID: m.id, Name: m.name})
 		h.cursor = len(h.convs) - 1
 		h.mode, h.input, h.dmErr = modeChat, nil, ""
-		return h, getConvMsgs(m.id, m.name, h.userID, h.accessToken)
+		return h, getConvMsgs(m.id, m.name, h.userID, h.accessToken, false)
 	case apperr.DMErrMsg:
 		h.dmErr = m.UserErr
 	case tea.KeyPressMsg:

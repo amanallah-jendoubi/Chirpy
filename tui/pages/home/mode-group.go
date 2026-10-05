@@ -66,13 +66,13 @@ func (h *home) updateGroup(msg tea.Msg) (nav.Screen, tea.Cmd) {
 			if conversation.ID == m.ID {
 				h.cursor = i
 				h.mode, h.gName, h.groupErr = modeChat, nil, ""
-				return h, getConvMsgs(m.ID, m.Name, h.userID, h.accessToken)
+				return h, getConvMsgs(m.ID, m.Name, h.userID, h.accessToken, true)
 			}
 		}
 		h.convs = append(h.convs, receiver{ID: m.ID, Name: m.Name, IsGroup: true})
 		h.cursor = len(h.convs) - 1
 		h.mode, h.gName, h.groupErr = modeChat, nil, ""
-		return h, getConvMsgs(m.ID, m.Name, h.userID, h.accessToken)
+		return h, getConvMsgs(m.ID, m.Name, h.userID, h.accessToken, true)
 	case tea.KeyPressMsg:
 		switch m.String() {
 		case "esc":
