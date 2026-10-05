@@ -1,15 +1,17 @@
 package app
 
 import (
+	"strings"
+
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/home"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/login"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/menu"
 	"github.com/amanallah-jendoubi/Textio/tui/pages/signup"
 	"github.com/amanallah-jendoubi/Textio/tui/styles"
-	"strings"
 )
 
 // screen builder
@@ -62,6 +64,11 @@ func (a app) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case nav.NavigateMsg:
 		a.current = build(msg.To)
+		return a, a.current.Init()
+
+	case apperr.SessionExpiredMsg:
+		a.current = login.NewLogin()
+		_, _ = a.current.Update(msg)
 		return a, a.current.Init()
 
 	case tea.KeyPressMsg:

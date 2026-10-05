@@ -45,6 +45,8 @@ func (l *login) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		l.loading, l.err = false, msg.UserErr
 	case apperr.AuthErrMsg:
 		l.err = msg.UserErr
+	case apperr.SessionExpiredMsg:
+		l.err = "Your session expired. Please log in again."
 	case tea.KeyPressMsg:
 		if l.loading {
 			return l, nil // ignore input while waiting for the server

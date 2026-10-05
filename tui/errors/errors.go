@@ -25,6 +25,7 @@ type DMErrMsg struct{ errBase }
 type LoginErrMsg struct{ errBase }
 type SignupErrMsg struct{ errBase }
 type AuthErrMsg struct{ errBase }
+type SessionExpiredMsg struct{}
 
 // constructors, one per target
 func AsList(b errBase) tea.Msg   { return ListErrMsg{b} }
@@ -65,6 +66,9 @@ func statusMessage(code int) string {
 
 func HandleAPIError(wrap func(errBase) tea.Msg, res *http.Response, fallback string) tea.Msg {
 	defer res.Body.Close()
+	if res.Header.Get("X-Matrix-Session-Expired") == "true" {
+		return SessionExpiredMsg{}
+	}
 
 	var payload struct {
 		Error string `json:"error"`

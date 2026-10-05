@@ -35,7 +35,7 @@ func VerifyAccessToken(next http.Handler) http.Handler {
 		}
 		parts := strings.Split(authorizationHeader, " ")
 		if len(parts) != 2 || parts[0] != "Bearer" {
-			helpers.RespondWithError(w, http.StatusUnauthorized, "invalid authorization header")
+			helpers.RespondWithError(w, 401, "invalid authorization header")
 			return
 		}
 		tokenString := parts[1]
