@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/amanallah-jendoubi/Textio/http/helpers"
-	"github.com/amanallah-jendoubi/Textio/sql/database"
+	"github.com/amanallah-jendoubi/matrix-chat/http/helpers"
+	"github.com/amanallah-jendoubi/matrix-chat/sql/database"
 	"github.com/google/uuid"
 )
 

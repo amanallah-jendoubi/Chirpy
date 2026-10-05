@@ -7,12 +7,12 @@ import (
 	"encoding/json"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/amanallah-jendoubi/Textio/tui/auth"
-	"github.com/amanallah-jendoubi/Textio/tui/client"
-	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
-	"github.com/amanallah-jendoubi/Textio/tui/nav"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/auth"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/client"
+	apperr "github.com/amanallah-jendoubi/matrix-chat/tui/errors"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/nav"
 
-	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/styles"
 	"github.com/google/uuid"
 )
 

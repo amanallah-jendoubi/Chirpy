@@ -3,7 +3,7 @@ package config
 import (
 	"database/sql"
 	"fmt"
-	"github.com/amanallah-jendoubi/Textio/http/helpers"
+	"github.com/amanallah-jendoubi/matrix-chat/http/helpers"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"log"

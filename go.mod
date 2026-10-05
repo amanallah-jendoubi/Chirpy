@@ -1,4 +1,4 @@
-module github.com/amanallah-jendoubi/Textio
+module github.com/amanallah-jendoubi/matrix-chat
 
 go 1.26.0
 

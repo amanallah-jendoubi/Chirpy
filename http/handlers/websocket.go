@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/amanallah-jendoubi/Textio/http/middlewares"
-	"github.com/amanallah-jendoubi/Textio/http/realtime"
+	"github.com/amanallah-jendoubi/matrix-chat/http/middlewares"
+	"github.com/amanallah-jendoubi/matrix-chat/http/realtime"
 	"github.com/google/uuid"
 )
 

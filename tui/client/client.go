@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/amanallah-jendoubi/Textio/tui/auth"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/auth"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )

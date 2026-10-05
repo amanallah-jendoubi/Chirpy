@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/amanallah-jendoubi/Textio/http/helpers"
-	"github.com/amanallah-jendoubi/Textio/http/middlewares"
-	"github.com/amanallah-jendoubi/Textio/http/realtime"
-	"github.com/amanallah-jendoubi/Textio/sql/database"
+	"github.com/amanallah-jendoubi/matrix-chat/http/helpers"
+	"github.com/amanallah-jendoubi/matrix-chat/http/middlewares"
+	"github.com/amanallah-jendoubi/matrix-chat/http/realtime"
+	"github.com/amanallah-jendoubi/matrix-chat/sql/database"
 )
 
 func SendMessageHandler(q *database.Queries, hub *realtime.Hub) http.Handler {

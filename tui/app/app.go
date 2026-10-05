@@ -5,13 +5,13 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
-	"github.com/amanallah-jendoubi/Textio/tui/nav"
-	"github.com/amanallah-jendoubi/Textio/tui/pages/home"
-	"github.com/amanallah-jendoubi/Textio/tui/pages/login"
-	"github.com/amanallah-jendoubi/Textio/tui/pages/menu"
-	"github.com/amanallah-jendoubi/Textio/tui/pages/signup"
-	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	apperr "github.com/amanallah-jendoubi/matrix-chat/tui/errors"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/nav"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/pages/home"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/pages/login"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/pages/menu"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/pages/signup"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/styles"
 )
 
 // screen builder

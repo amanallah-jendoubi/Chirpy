@@ -3,7 +3,7 @@ package main
 import (
 	tea "charm.land/bubbletea/v2"
 	"fmt"
-	"github.com/amanallah-jendoubi/Textio/tui/app"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/app"
 	"os"
 )
 

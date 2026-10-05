@@ -5,11 +5,11 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/amanallah-jendoubi/Textio/config"
-	"github.com/amanallah-jendoubi/Textio/http/handlers"
-	"github.com/amanallah-jendoubi/Textio/http/middlewares"
-	"github.com/amanallah-jendoubi/Textio/http/realtime"
-	"github.com/amanallah-jendoubi/Textio/sql/database"
+	"github.com/amanallah-jendoubi/matrix-chat/config"
+	"github.com/amanallah-jendoubi/matrix-chat/http/handlers"
+	"github.com/amanallah-jendoubi/matrix-chat/http/middlewares"
+	"github.com/amanallah-jendoubi/matrix-chat/http/realtime"
+	"github.com/amanallah-jendoubi/matrix-chat/sql/database"
 )
 
 func main() {

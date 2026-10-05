@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"charm.land/lipgloss/v2"
-	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/styles"
 )
 
 func formatMessageTime(at time.Time) string {

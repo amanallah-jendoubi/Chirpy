@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/amanallah-jendoubi/Textio/http/helpers"
+	"github.com/amanallah-jendoubi/matrix-chat/http/helpers"
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
 )

@@ -2,8 +2,8 @@ package menu
 
 import (
 	tea "charm.land/bubbletea/v2"
-	"github.com/amanallah-jendoubi/Textio/tui/nav"
-	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/nav"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/styles"
 	"strings"
 )
 

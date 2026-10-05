@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"net/http"
 
-	"github.com/amanallah-jendoubi/Textio/http/helpers"
-	"github.com/amanallah-jendoubi/Textio/http/middlewares"
-	"github.com/amanallah-jendoubi/Textio/sql/database"
+	"github.com/amanallah-jendoubi/matrix-chat/http/helpers"
+	"github.com/amanallah-jendoubi/matrix-chat/http/middlewares"
+	"github.com/amanallah-jendoubi/matrix-chat/sql/database"
 	"github.com/google/uuid"
 )
 

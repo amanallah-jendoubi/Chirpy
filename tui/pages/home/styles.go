@@ -1,7 +1,7 @@
 package home
 
 import (
-	"github.com/amanallah-jendoubi/Textio/tui/styles"
+	"github.com/amanallah-jendoubi/matrix-chat/tui/styles"
 )
 
 // ---------- Layout ----------
