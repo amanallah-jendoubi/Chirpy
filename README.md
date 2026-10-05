@@ -480,9 +480,3 @@ If you want to contribute or extend the project, the most natural starting point
 - `http/realtime` for live message delivery
 - `tui/pages` for UI flows
 - `sql/queries` and `sql/schema` for database changes
-
----
-
-## License
-
-This project does not currently define a license file. If you are publishing or distributing it, add a license before broader use.
