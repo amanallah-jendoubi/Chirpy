@@ -38,10 +38,9 @@ func main() {
 	mux.Handle("GET /api/conversations", middlewares.VerifyAccessToken(handlers.ConversationsHandler(queries)))
 	// get conversation messages sorted by latest (to improve)
 	mux.Handle("GET /api/conversations/{receiverID}/messages", middlewares.VerifyAccessToken(handlers.GetMessagesHandler(queries)))
-	/*todo
-	create group
-	add member to a group
-	*/
+	// group management
+	mux.Handle("POST /api/groups", middlewares.VerifyAccessToken(handlers.CreateGroupHandler(queries)))
+	mux.Handle("POST /api/groups/{groupID}/members", middlewares.VerifyAccessToken(handlers.AddGroupMemberHandler(queries)))
 	log.Print("Listening...")
 	http.ListenAndServe(":8080", middlewares.Logger(mux))
 }

@@ -46,10 +46,11 @@ type websocketConnectedMsg struct {
 type viewMode int
 
 const (
-	modeList  viewMode = iota // browsing conversations
-	modeChat                  // typing a message
-	modeGroup                 // new-group form
-	modeDM                    // new conversation by username
+	modeList        viewMode = iota // browsing conversations
+	modeChat                        // typing a message
+	modeGroup                       // new-group form
+	modeDM                          // new conversation by username
+	modeGroupMember                 // adding a member to a group
 )
 
 type home struct {
@@ -67,8 +68,9 @@ type home struct {
 	userID        uuid.UUID
 
 	// new-group form
-	gName  []rune
-	gFocus int // 0 = name, 1..len(contacts) = members, len(contacts)+1 = button
+	gName         []rune
+	memberName    []rune
+	memberGroupID uuid.UUID
 
 	// new conversation (by username)
 	uID   string
@@ -212,6 +214,10 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		}
 	case dmUserLoaded:
 		return h.updateDM(m)
+	case groupCreated:
+		return h.updateGroup(m)
+	case groupMemberAdded:
+		return h.updateGroupMember(m)
 	case websocketClosedMsg:
 		h.socket = nil
 		return h, reconnectWebSocket(h.accessToken)
@@ -236,22 +242,29 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		h.listErr = m.UserErr
 	case apperr.DMErrMsg:
 		h.dmErr = m.UserErr
+	case apperr.GroupErrMsg:
+		h.groupErr = m.UserErr
 	case tea.KeyPressMsg:
 		switch h.mode {
 		case modeChat:
 			return h.updateChat(m)
 		case modeDM:
 			return h.updateDM(m)
-		// case modeGroup:
-		// 	return h.updateGroup(m)
-		//case modeDM:
-		//	return h.updateDM(m)
+		case modeGroup:
+			return h.updateGroup(m)
+		case modeGroupMember:
+			return h.updateGroupMember(m)
 		default:
 			return h.updateList(m)
 		}
 	case tea.PasteMsg:
-		if h.mode == modeChat {
+		switch h.mode {
+		case modeChat:
 			return h.updateChat(m)
+		case modeGroup:
+			return h.updateGroup(m)
+		case modeGroupMember:
+			return h.updateGroupMember(m)
 		}
 	}
 	return h, nil
@@ -263,8 +276,10 @@ func (h *home) Box(frame int) string {
 	left := h.leftLines()
 	var right []string
 	switch h.mode {
-	//case modeGroup:
-	//	right = h.groupLines(frame)
+	case modeGroup:
+		right = h.groupLines(frame)
+	case modeGroupMember:
+		right = h.groupMemberLines(frame)
 	case modeDM:
 		right = h.dmLines(frame)
 	default:

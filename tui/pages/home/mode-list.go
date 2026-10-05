@@ -81,6 +81,8 @@ func (h *home) updateList(msg tea.Msg) (nav.Screen, tea.Cmd) {
 			h.mode = modeChat
 		case "c":
 			h.mode, h.uName, h.dmErr = modeDM, nil, ""
+		case "n":
+			h.mode, h.gName, h.groupErr = modeGroup, nil, ""
 		}
 
 	case apperr.ChatErrMsg:

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/amanallah-jendoubi/Textio/http/helpers"
@@ -39,6 +40,10 @@ func GetUserIdByUserNameHandler(q *database.Queries) http.Handler {
 		userName := r.PathValue("userName")
 		userID, err := q.GetUserIDByUserName(r.Context(), userName)
 		if err != nil {
+			if err == sql.ErrNoRows {
+				helpers.RespondWithError(w, http.StatusNotFound, "user not found")
+				return
+			}
 			helpers.RespondWithError(w, 500, "internal server error")
 			return
 		}

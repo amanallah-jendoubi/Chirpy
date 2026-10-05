@@ -57,23 +57,40 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 const getConversationsByUserID = `-- name: GetConversationsByUserID :many
 WITH recent AS (
     SELECT
-        CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END AS other_id,
-        MAX(created_at) AS latest
+        CASE
+            WHEN groups.id IS NOT NULL THEN messages.receiver_id
+            WHEN messages.sender_id = $1 THEN messages.receiver_id
+            ELSE messages.sender_id
+        END AS other_id,
+        MAX(messages.created_at) AS latest
     FROM messages
-    WHERE sender_id = $1 OR receiver_id = $1
+    LEFT JOIN chat_groups AS groups ON groups.id = messages.receiver_id
+    WHERE (
+        groups.id IS NOT NULL
+        AND messages.receiver_id IN (
+            SELECT chat_group_id
+            FROM chat_group_members
+            WHERE user_id = $1
+        )
+    ) OR (
+        groups.id IS NULL
+        AND (messages.sender_id = $1 OR messages.receiver_id = $1)
+    )
     GROUP BY other_id
 )
 SELECT u.id, u.name, r.latest
-FROM recent r , users u 
-WHERE r.other_id = u.id 
+FROM recent r
+JOIN users u ON r.other_id = u.id
 
 UNION ALL
 
 SELECT c.id, c.name, r.latest
-FROM recent r, chat_groups c
-WHERE r.other_id = c.id 
+FROM chat_group_members AS members
+JOIN chat_groups AS c ON c.id = members.chat_group_id
+LEFT JOIN recent AS r ON r.other_id = c.id
+WHERE members.user_id = $1
 
-ORDER BY latest DESC
+ORDER BY latest DESC NULLS LAST
 `
 
 type GetConversationsByUserIDRow struct {

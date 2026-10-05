@@ -94,11 +94,16 @@ func renderMsg(m message, w int) []string {
 func (h *home) help() string {
 	switch h.mode {
 	case modeChat:
+		if h.cursor < len(h.convs) && h.convs[h.cursor].IsGroup {
+			return "↑/↓ scroll • enter send • ctrl+a add member • esc back"
+		}
 		return "↑/↓ scroll • enter send • esc back"
 	case modeGroup:
-		return "tab/↑↓ move • enter/space toggle • esc cancel"
+		return "enter create • esc cancel"
 	case modeDM:
 		return "enter start • esc cancel"
+	case modeGroupMember:
+		return "enter add • esc cancel"
 	default:
 		return "↑/↓ select • c new chat • n new group • q quit"
 	}

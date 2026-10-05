@@ -53,6 +53,10 @@ func (h *home) updateChat(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		switch msg.String() {
 		case "esc":
 			h.mode, h.input = modeList, nil
+		case "ctrl+a":
+			if h.cursor < len(h.convs) && h.convs[h.cursor].IsGroup {
+				return h, h.startAddGroupMember()
+			}
 		case "up":
 			h.messageScroll++
 		case "down":
@@ -112,12 +116,19 @@ func (h *home) chatLines(frame int) []string {
 		head = "# " + c.Name // add the member count once your struct has it
 	}
 	lines[0] = styles.BannerStyle.Render(styles.Clip(head, rightW))
+	if h.groupErr != "" && c.IsGroup {
+		lines[1] = styles.ErrStyle.Render(styles.Clip(h.groupErr, rightW))
+	}
 
 	var out []string
 	for _, m := range c.Messages {
 		out = append(out, renderMsg(m, rightW)...)
 	}
-	avail := bodyH - 2
+	firstMessageLine := 1
+	if h.groupErr != "" && c.IsGroup {
+		firstMessageLine = 2
+	}
+	avail := bodyH - firstMessageLine - 1
 	maxScroll := len(out) - avail
 	if maxScroll < 0 {
 		maxScroll = 0
@@ -130,7 +141,7 @@ func (h *home) chatLines(frame int) []string {
 	if start < 0 {
 		start = 0
 	}
-	copy(lines[1:1+avail], out[start:end])
+	copy(lines[firstMessageLine:firstMessageLine+avail], out[start:end])
 
 	lines[bodyH-1] = h.inputLine(frame)
 	return lines
