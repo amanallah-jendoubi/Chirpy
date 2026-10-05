@@ -80,7 +80,7 @@ func (h *home) updateList(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		case "enter":
 			h.mode = modeChat
 		case "c":
-			h.mode, h.uName, h.chatErr = modeDM, nil, ""
+			h.mode, h.uName, h.dmErr = modeDM, nil, ""
 		}
 
 	case apperr.ChatErrMsg:

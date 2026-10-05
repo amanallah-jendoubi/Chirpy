@@ -1,71 +1,76 @@
 package home
 
-/*import (
-	tea "charm.land/bubbletea/v2"
+import (
 	"encoding/json"
-	"errors"
-	"github.com/amanallah-jendoubi/Textio/tui/auth"
+	"net/url"
+	"strings"
+
+	tea "charm.land/bubbletea/v2"
 	"github.com/amanallah-jendoubi/Textio/tui/client"
+	apperr "github.com/amanallah-jendoubi/Textio/tui/errors"
 	"github.com/amanallah-jendoubi/Textio/tui/nav"
 	"github.com/amanallah-jendoubi/Textio/tui/styles"
 	"github.com/google/uuid"
-	"io"
-	"strings"
 )
+
+type dmUserLoaded struct {
+	id   uuid.UUID
+	name string
+}
 
 func (h *home) startConversation() tea.Cmd {
 	name := strings.TrimSpace(string(h.uName))
 	if name == "" {
-		h.uErr = "Enter a username"
+		h.dmErr = "Enter a username"
 		return nil
 	}
-	// already have a conversation with this user? just open it
-	for i, c := range h.convs {
-		if !c.IsGroup && strings.EqualFold(c.Name, name) {
+
+	for i, conversation := range h.convs {
+		if !conversation.IsGroup && strings.EqualFold(conversation.Name, name) {
 			h.cursor, h.mode, h.input = i, modeChat, nil
-			return nil
+			return getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken)
 		}
 	}
+
 	return func() tea.Msg {
-		accessToken, errMsg := auth.GetAccessToken()
-		if errMsg.Err != nil {
-			return errMsg
-		}
-		res, err := client.Get("/users/"+name, accessToken, nil)
+		res, err := client.Get("/users/"+url.PathEscape(name), h.accessToken, nil)
 		if err != nil {
-			return client.ErrMsg{Err: errors.New("cannot reach server")}
+			return apperr.HandleLocalError(apperr.AsDM, err)
+		}
+		defer res.Body.Close()
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			return apperr.HandleAPIError(apperr.AsDM, res, "")
 		}
 
-		if res.StatusCode < 200 || res.StatusCode > 299 {
-			return client.HandleRequestError(res)
+		var user struct {
+			ID uuid.UUID `json:"user_id"`
 		}
-		type receiver struct {
-			ID uuid.UUID
+		if err := json.NewDecoder(res.Body).Decode(&user); err != nil {
+			return apperr.HandleLocalError(apperr.AsDM, err)
 		}
-		var r receiver
-		decoder := json.NewDecoder(io.LimitReader(res.Body, 1024))
-		if err := decoder.Decode(&r); err != nil {
-			return client.ErrMsg{Err: err}
-		}
-		h.convs = append(h.convs, conversation{
-			ID:      r.ID,
-			Name:    name,
-			IsGroup: false,
-		})
-		h.cursor = len(h.convs) - 1
-		h.mode, h.input = modeChat, nil
-		return nil
+		return dmUserLoaded{id: user.ID, name: name}
 	}
 }
 
 func (h *home) updateDM(msg tea.Msg) (nav.Screen, tea.Cmd) {
-	switch msg := msg.(type) {
-	case client.ErrMsg:
-		h.uErr = msg.Error()
+	switch m := msg.(type) {
+	case dmUserLoaded:
+		for i, conversation := range h.convs {
+			if !conversation.IsGroup && conversation.ID == m.id {
+				h.cursor, h.mode, h.input = i, modeChat, nil
+				return h, getConvMsgs(conversation.ID, conversation.Name, h.userID, h.accessToken)
+			}
+		}
+		h.convs = append(h.convs, receiver{ID: m.id, Name: m.name})
+		h.cursor = len(h.convs) - 1
+		h.mode, h.input, h.dmErr = modeChat, nil, ""
+		return h, getConvMsgs(m.id, m.name, h.userID, h.accessToken)
+	case apperr.DMErrMsg:
+		h.dmErr = m.UserErr
 	case tea.KeyPressMsg:
-		switch msg.String() {
+		switch m.String() {
 		case "esc":
-			h.mode = modeList
+			h.mode, h.dmErr = modeList, ""
 		case "enter":
 			return h, h.startConversation()
 		case "backspace":
@@ -73,31 +78,28 @@ func (h *home) updateDM(msg tea.Msg) (nav.Screen, tea.Cmd) {
 				h.uName = h.uName[:len(h.uName)-1]
 			}
 		default:
-			if msg.Text != "" && len(h.uName) < 20 && !strings.ContainsAny(msg.Text, " \t") {
-				h.uName = append(h.uName, []rune(msg.Text)...)
-				h.uErr = ""
+			if m.Text != "" && len(h.uName) < 20 && !strings.ContainsAny(m.Text, " \t\r\n") {
+				h.uName = append(h.uName, []rune(m.Text)...)
+				h.dmErr = ""
 			}
 		}
 	}
 	return h, nil
 }
 
-//view for the new conversation form
-
 func (h *home) dmLines(frame int) []string {
 	lines := make([]string, bodyH)
 	lines[0] = styles.BannerStyle.Render("NEW CONVERSATION")
 	lines[2] = styles.RainMid.Render("Username")
 
-	cur := " "
+	cursor := " "
 	if (frame/6)%2 == 0 {
-		cur = "█"
+		cursor = "█"
 	}
-	lines[3] = styles.RainBright.Render("▌ @" + string(h.uName) + cur)
+	lines[3] = styles.RainBright.Render("▌ @" + string(h.uName) + cursor)
 
-	if h.uErr != "" {
-		lines[5] = styles.ErrStyle.Render(styles.Clip(h.uErr, rightW))
+	if h.dmErr != "" {
+		lines[5] = styles.ErrStyle.Render(styles.Clip(h.dmErr, rightW))
 	}
 	return lines
 }
-*/

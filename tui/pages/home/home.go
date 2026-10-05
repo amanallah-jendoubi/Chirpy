@@ -210,6 +210,8 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		if len(h.convs) > 0 {
 			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken)
 		}
+	case dmUserLoaded:
+		return h.updateDM(m)
 	case websocketClosedMsg:
 		h.socket = nil
 		return h, reconnectWebSocket(h.accessToken)
@@ -232,10 +234,14 @@ func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 		h.listErr = m.UserErr
 	case apperr.ListErrMsg:
 		h.listErr = m.UserErr
+	case apperr.DMErrMsg:
+		h.dmErr = m.UserErr
 	case tea.KeyPressMsg:
 		switch h.mode {
 		case modeChat:
 			return h.updateChat(m)
+		case modeDM:
+			return h.updateDM(m)
 		// case modeGroup:
 		// 	return h.updateGroup(m)
 		//case modeDM:
@@ -259,8 +265,8 @@ func (h *home) Box(frame int) string {
 	switch h.mode {
 	//case modeGroup:
 	//	right = h.groupLines(frame)
-	//case modeDM:
-	//	right = h.dmLines(frame)
+	case modeDM:
+		right = h.dmLines(frame)
 	default:
 		right = h.chatLines(frame)
 	}
