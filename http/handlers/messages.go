@@ -2,16 +2,18 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/amanallah-jendoubi/Textio/http/helpers"
 	"github.com/amanallah-jendoubi/Textio/http/middlewares"
+	"github.com/amanallah-jendoubi/Textio/http/realtime"
 	"github.com/amanallah-jendoubi/Textio/sql/database"
 )
 
-func SendMessageHandler(q *database.Queries) http.Handler {
+func SendMessageHandler(q *database.Queries, hub *realtime.Hub) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		receiverIDString := r.PathValue("receiverID")
 		if receiverIDString == "" {
@@ -45,6 +47,21 @@ func SendMessageHandler(q *database.Queries) http.Handler {
 				return
 			}
 		}
+		recipients := []uuid.UUID{receiverID}
+		if isChatGroupID {
+			recipients, err = q.GetGroupMemberIDs(r.Context(), receiverID)
+			if err != nil {
+				helpers.RespondWithError(w, 500, "server internal error")
+				return
+			}
+			otherMembers := recipients[:0]
+			for _, recipientID := range recipients {
+				if recipientID != userID {
+					otherMembers = append(otherMembers, recipientID)
+				}
+			}
+			recipients = otherMembers
+		}
 		type requset struct {
 			Body string `json:"body"`
 		}
@@ -72,13 +89,15 @@ func SendMessageHandler(q *database.Queries) http.Handler {
 			ReceiverID uuid.UUID `json:"receiver_id"`
 			Body       string    `json:"body"`
 		}
-		helpers.RespondWithJSON(w, 200, response{
+		payload := response{
 			ID:         message.ID,
 			CreatedAt:  message.CreatedAt,
 			SenderID:   message.SenderID,
 			ReceiverID: message.ReceiverID,
 			Body:       message.Body,
-		})
+		}
+		hub.SendToUsers(recipients, payload)
+		helpers.RespondWithJSON(w, 200, payload)
 	}
 	return http.HandlerFunc(fn)
 }

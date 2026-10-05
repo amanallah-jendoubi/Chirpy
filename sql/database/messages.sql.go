@@ -147,6 +147,35 @@ func (q *Queries) GetDuelMessages(ctx context.Context, arg GetDuelMessagesParams
 	return items, nil
 }
 
+const getGroupMemberIDs = `-- name: GetGroupMemberIDs :many
+SELECT user_id
+FROM chat_group_members
+WHERE chat_group_id = $1
+`
+
+func (q *Queries) GetGroupMemberIDs(ctx context.Context, chatGroupID uuid.UUID) ([]uuid.UUID, error) {
+	rows, err := q.db.QueryContext(ctx, getGroupMemberIDs, chatGroupID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []uuid.UUID
+	for rows.Next() {
+		var user_id uuid.UUID
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getGroupMessages = `-- name: GetGroupMessages :many
 SELECT id, created_at, sender_id, receiver_id, body
 FROM messages 

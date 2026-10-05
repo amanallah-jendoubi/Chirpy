@@ -2,6 +2,7 @@ package home
 
 import (
 	"strings"
+	"time"
 
 	"encoding/json"
 
@@ -27,7 +28,20 @@ type receiver struct {
 	Messages []message `json:"messages"`
 }
 
-type convsLoaded []receiver
+type convsLoaded struct {
+	convs  []receiver
+	socket *client.WebSocket
+}
+
+type convsRefreshed []receiver
+
+type realtimeMessageMsg client.RealtimeMessage
+
+type websocketClosedMsg struct{}
+
+type websocketConnectedMsg struct {
+	socket *client.WebSocket
+}
 
 type viewMode int
 
@@ -45,6 +59,7 @@ type home struct {
 	mode          viewMode
 	input         []rune // message draft
 	accessToken   string
+	socket        *client.WebSocket
 	listErr       string
 	chatErr       string
 	groupErr      string
@@ -95,17 +110,115 @@ func (h *home) Init() tea.Cmd {
 		if err := json.NewDecoder(res.Body).Decode(&convs); err != nil {
 			return apperr.HandleLocalError(apperr.AsList, err)
 		}
-		return convsLoaded(convs)
+		socket, _ := client.ConnectWebSocket(accessToken)
+		return convsLoaded{convs: convs, socket: socket}
+	}
+}
+
+func readWebSocket(socket *client.WebSocket) tea.Cmd {
+	return func() tea.Msg {
+		message, err := socket.ReadMessage()
+		if err != nil {
+			return websocketClosedMsg{}
+		}
+		return realtimeMessageMsg(message)
+	}
+}
+
+func refreshConversations(accessToken string) tea.Cmd {
+	return func() tea.Msg {
+		res, err := client.Get("/conversations", accessToken, nil)
+		if err != nil {
+			return apperr.HandleLocalError(apperr.AsList, err)
+		}
+		defer res.Body.Close()
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			return apperr.HandleAPIError(apperr.AsList, res, "")
+		}
+		var convs []receiver
+		if err := json.NewDecoder(res.Body).Decode(&convs); err != nil {
+			return apperr.HandleLocalError(apperr.AsList, err)
+		}
+		return convsRefreshed(convs)
+	}
+}
+
+func reconnectWebSocket(accessToken string) tea.Cmd {
+	return func() tea.Msg {
+		timer := time.NewTimer(time.Second)
+		defer timer.Stop()
+		<-timer.C
+		socket, _ := client.ConnectWebSocket(accessToken)
+		return websocketConnectedMsg{socket: socket}
 	}
 }
 
 func (h *home) Update(msg tea.Msg) (nav.Screen, tea.Cmd) {
 	switch m := msg.(type) {
 	case convsLoaded:
+		h.convs = m.convs
+		h.socket = m.socket
+		cmds := []tea.Cmd{reconnectWebSocket(h.accessToken)}
+		if h.socket != nil {
+			cmds[0] = readWebSocket(h.socket)
+		}
+		if len(h.convs) > 0 {
+			cmds = append(cmds, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken))
+		}
+		return h, tea.Batch(cmds...)
+	case realtimeMessageMsg:
+		incoming := client.RealtimeMessage(m)
+		conversationID := incoming.ReceiverID
+		conversationIndex := -1
+		for i := range h.convs {
+			if h.convs[i].ID == conversationID {
+				conversationIndex = i
+				break
+			}
+		}
+		if conversationIndex < 0 {
+			if incoming.ReceiverID == h.userID {
+				conversationID = incoming.SenderID
+				for i := range h.convs {
+					if h.convs[i].ID == conversationID {
+						conversationIndex = i
+						break
+					}
+				}
+			}
+		}
+		if conversationIndex < 0 {
+			return h, tea.Batch(readWebSocket(h.socket), refreshConversations(h.accessToken))
+		}
+		if conversationIndex >= 0 {
+			from := h.convs[conversationIndex].Name
+			if incoming.SenderID == h.userID {
+				from = "me"
+			}
+			h.convs[conversationIndex].Messages = append(h.convs[conversationIndex].Messages, message{
+				from: from,
+				at:   formatMessageTime(incoming.CreatedAt),
+				body: incoming.Body,
+			})
+		}
+		return h, readWebSocket(h.socket)
+	case convsRefreshed:
 		h.convs = m
+		if h.cursor >= len(h.convs) {
+			h.cursor = 0
+		}
 		if len(h.convs) > 0 {
 			return h, getConvMsgs(h.convs[h.cursor].ID, h.convs[h.cursor].Name, h.userID, h.accessToken)
 		}
+	case websocketClosedMsg:
+		h.socket = nil
+		return h, reconnectWebSocket(h.accessToken)
+	case websocketConnectedMsg:
+		if m.socket == nil {
+			return h, reconnectWebSocket(h.accessToken)
+		}
+		h.socket = m.socket
+		return h, readWebSocket(h.socket)
 	case convMsgs:
 		for i := range h.convs {
 			if h.convs[i].ID == m.ConvID {

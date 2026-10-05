@@ -21,6 +21,11 @@ SELECT EXISTS (
       AND user_id = $2
 ) AS exists;
 
+-- name: GetGroupMemberIDs :many
+SELECT user_id
+FROM chat_group_members
+WHERE chat_group_id = $1;
+
 -- name: GetConversationsByUserID :many
 WITH recent AS (
     SELECT
