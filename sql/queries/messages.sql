@@ -23,20 +23,22 @@ SELECT EXISTS (
 
 -- name: GetConversationsByUserID :many
 WITH recent AS (
-    SELECT receiver_id, MAX(created_at) AS latest
+    SELECT
+        CASE WHEN sender_id = $1 THEN receiver_id ELSE sender_id END AS other_id,
+        MAX(created_at) AS latest
     FROM messages
-    WHERE sender_id = $1
-    GROUP BY receiver_id
+    WHERE sender_id = $1 OR receiver_id = $1
+    GROUP BY other_id
 )
 SELECT u.id, u.name, r.latest
 FROM recent r , users u 
-WHERE r.receiver_id = u.id 
+WHERE r.other_id = u.id 
 
 UNION ALL
 
 SELECT c.id, c.name, r.latest
 FROM recent r, chat_groups c
-WHERE r.receiver_id = c.id 
+WHERE r.other_id = c.id 
 
 ORDER BY latest DESC;
 

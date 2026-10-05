@@ -16,7 +16,7 @@ func UserInfoHandler(q *database.Queries) http.Handler {
 			helpers.RespondWithError(w, 500, "missing user id in context")
 			return
 		}
-		userName, err := q.GetUserByID(r.Context(), userID)
+		user, err := q.GetUserByID(r.Context(), userID)
 		if err != nil {
 			helpers.RespondWithError(w, 500, "internal server error")
 			return
@@ -26,8 +26,8 @@ func UserInfoHandler(q *database.Queries) http.Handler {
 			UserName string    `json:"user_name"`
 		}
 		res := response{
-			UserName: userName,
-			UserID:   userID,
+			UserName: user.Name,
+			UserID:   user.ID,
 		}
 		helpers.RespondWithJSON(w, 200, res)
 	}
