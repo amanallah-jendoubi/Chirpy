@@ -10,6 +10,8 @@ The project combines:
 - JWT-based access tokens plus refresh-token support
 - Docker support for quick local development
 
+  https://github.com/user-attachments/assets/e8f09e64-cf18-44c9-ab30-05ef3acfa38c
+
 ---
 
 ## Features
